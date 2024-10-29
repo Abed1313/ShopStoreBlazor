@@ -1,0 +1,85 @@
+﻿@page "/customers"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models
+@inject CustomerService CustomerService
+@inject NavigationManager NavigationManager
+
+<h3>Customer List</h3>
+
+@if (customers == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!customers.Any())
+{
+    <p>No customers found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in customers)
+            {
+                <tr>
+                    <td>@customer.FirstName</td>
+                    <td>@customer.LastName</td>
+                    <td>@customer.Email</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => ViewDetails(customer.CustomerId)">Details</button>
+                        <button class="btn btn-warning" @onclick="() => EditCustomer(customer.CustomerId)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => ConfirmDelete(customer.CustomerId)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<button class="btn btn-success mt-3" @onclick="NavigateToCreatePage">Create New Customer</button>
+
+@code {
+    private List<Customer> customers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        customers = await CustomerService.GetCustomersAsync();
+    }
+
+    private void ViewDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/customer/{id}");
+    }
+
+    private void EditCustomer(int id)
+    {
+        NavigationManager.NavigateTo($"/customer/edit/{id}");
+    }
+
+    private async Task ConfirmDelete(int id)
+    {
+        if (await ShowDeleteConfirmation())
+        {
+            await CustomerService.DeleteCustomerAsync(id);
+            customers = await CustomerService.GetCustomersAsync(); // Refresh the list after deletion
+        }
+    }
+
+    private async Task<bool> ShowDeleteConfirmation()
+    {
+        // Placeholder for actual confirmation dialog logic
+        return await Task.FromResult(true); // Replace with modal dialog logic as needed
+    }
+
+    private void NavigateToCreatePage()
+    {
+        NavigationManager.NavigateTo("/customer/create");
+    }
+}

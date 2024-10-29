@@ -1,0 +1,45 @@
+﻿@page "/orderitem/create"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models.DTO
+@inject OrderItemService OrderItemService
+@inject NavigationManager NavigationManager
+@using System.Collections.Generic
+
+<h3>Create Order Item</h3>
+
+<EditForm Model="newOrderItem" OnValidSubmit="HandleCreate">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Quantity:</label>
+        <InputNumber @bind-Value="newOrderItem.Quantity" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Unit Price:</label>
+        <InputNumber @bind-Value="newOrderItem.UnitPrice" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Order ID:</label>
+        <InputNumber @bind-Value="newOrderItem.OrderId" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Product ID:</label>
+        <InputNumber @bind-Value="newOrderItem.ProductId" class="form-control" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Order Item</button>
+</EditForm>
+
+@code {
+    private OrderItemDTO newOrderItem = new OrderItemDTO();
+
+    private async Task HandleCreate()
+    {
+        await OrderItemService.CreateOrderItemAsync(newOrderItem);
+        NavigationManager.NavigateTo("/orderitems"); // Navigate back to the order items list
+    }
+}

@@ -1,0 +1,91 @@
+﻿@page "/payments/edit/{paymentId:int}"
+@using Microsoft.AspNetCore.Components.Routing
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models;
+@using ShopStore.Shared.Models.DTO
+@inject PaymentService PaymentService
+@inject NavigationManager NavigationManager
+
+<h3>Edit Payment</h3>
+
+@if (paymentDTO == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="@paymentDTO" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="paymentDate">Payment Date</label>
+            <InputDate id="paymentDate" class="form-control" @bind-Value="paymentDTO.PaymentDate" />
+            <ValidationMessage For="@(() => paymentDTO.PaymentDate)" />
+        </div>
+
+        <div class="form-group">
+            <label for="amount">Amount</label>
+            <InputNumber id="amount" class="form-control" @bind-Value="paymentDTO.Amount" />
+            <ValidationMessage For="@(() => paymentDTO.Amount)" />
+        </div>
+
+        <div class="form-group">
+            <label for="paymentMethod">Payment Method</label>
+            <InputSelect id="paymentMethod" class="form-control" @bind-Value="paymentDTO.PaymentMethod">
+                <option value="">Select Payment Method</option>
+                <option value="CreditCard">Credit Card</option>
+                <option value="PayPal">PayPal</option>
+                <option value="BankTransfer">Bank Transfer</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => paymentDTO.PaymentMethod)" />
+        </div>
+
+        <div class="form-group">
+            <label for="orderId">Order ID</label>
+            <InputNumber id="orderId" class="form-control" @bind-Value="paymentDTO.OrderId" />
+            <ValidationMessage For="@(() => paymentDTO.OrderId)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Payment</button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int paymentId { get; set; }
+
+    private PaymentDTO paymentDTO;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var payment = await PaymentService.GetPaymentByIdAsync(paymentId);
+        paymentDTO = MapToDTO(payment);
+    }
+
+    private PaymentDTO MapToDTO(Payment payment)
+    {
+        if (payment == null) return null;
+
+        return new PaymentDTO
+        {
+            PaymentId = payment.PaymentId,
+            PaymentDate = payment.PaymentDate,
+            Amount = payment.Amount,
+            PaymentMethod = payment.PaymentMethod,
+            OrderId = payment.OrderId
+        };
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await PaymentService.UpdatePaymentAsync(paymentId, paymentDTO);
+        NavigationManager.NavigateTo("/payments");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/payments");
+    }
+}

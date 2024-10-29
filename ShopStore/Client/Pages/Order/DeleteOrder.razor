@@ -1,0 +1,34 @@
+﻿@page "/delete-order/{id:int}"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models
+@inject OrderService OrderService
+@inject NavigationManager NavigationManager // Inject NavigationManager for redirection
+
+<h3>Delete Order</h3>
+
+@if (order != null)
+{
+    <p>Are you sure you want to delete order ID: @order.OrderId?</p>
+    <button class="btn btn-danger" @onclick="ConfirmDelete">Yes, Delete</button>
+    <NavLink class="btn btn-secondary" href="/orders">Cancel</NavLink>
+}
+else  
+{
+    <p>Loading order details...</p>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Order order;
+
+    protected override async Task OnInitializedAsync()
+    {
+        order = await OrderService.GetOrderByIdAsync(Id);
+    }
+
+    private async Task ConfirmDelete() // Renamed from DeleteOrder to ConfirmDelete
+    {
+        await OrderService.DeleteOrderAsync(Id);
+        NavigationManager.NavigateTo("/orders"); // Redirect after deletion
+    }
+}

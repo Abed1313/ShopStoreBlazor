@@ -1,0 +1,77 @@
+﻿@page "/reviews"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models
+@inject ReviewService ReviewService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<h3>Reviews</h3>
+
+<button class="btn btn-primary" @onclick="CreateNewReview">Add Review</button>
+
+@if (reviews == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!reviews.Any())
+{
+    <p>No reviews available.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Rating</th>
+                <th>Comment</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var review in reviews)
+            {
+                <tr>
+                    <td>@review.Rating</td>
+                    <td>@review.Comment</td>
+                    <td>@review.CustomerId</td> <!-- You might want to display Customer Name here -->
+                    <td>@review.ProductId</td>  <!-- You might want to display Product Name here -->
+                    <td>
+                        <button class="btn btn-secondary" @onclick="() => EditReview(review.ReviewId)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => ConfirmDelete(review.ReviewId)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Review> reviews;
+
+    protected override async Task OnInitializedAsync()
+    {
+        reviews = await ReviewService.GetReviewsAsync();
+    }
+
+    private void CreateNewReview()
+    {
+        NavigationManager.NavigateTo("/reviews/create");
+    }
+
+    private void EditReview(int reviewId)
+    {
+        NavigationManager.NavigateTo($"/reviews/edit/{reviewId}");
+    }
+
+    private async Task ConfirmDelete(int reviewId)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this review?");
+        if (confirmed)
+        {
+            await ReviewService.DeleteReviewAsync(reviewId);
+            reviews = await ReviewService.GetReviewsAsync(); // Refresh the list after deletion
+        }
+    }
+}

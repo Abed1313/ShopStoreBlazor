@@ -1,0 +1,68 @@
+﻿@page "/cartitems"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models
+@using ShopStore.Shared.Models.DTO
+@inject CartItemService CartItemService
+@inject NavigationManager NavigationManager
+
+<h3>Cart Items</h3>
+    <button class="btn btn-success mt-3" style="border: 2px solid red;" @onclick="NavigateToCreatePage">Add New Item</button>
+
+@if (cartItems == null)
+{
+    <p>Loading...</p>
+}
+else if (!cartItems.Any())
+{
+    <p>No cart items found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in cartItems)
+            {
+                <tr>
+                    <td>@item.Product.Name</td>
+                    <td>@item.Quantity</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => EditCartItem(item.CartItemId)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteCartItem(item.CartItemId)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<CartItem> cartItems;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cartItems = await CartItemService.GetCartItemsAsync();
+    }
+
+    private void EditCartItem(int id)
+    {
+        NavigationManager.NavigateTo($"/cartitem/edit/{id}");
+    }
+
+    private async Task DeleteCartItem(int id)
+    {
+        await CartItemService.DeleteCartItemAsync(id);
+        cartItems = await CartItemService.GetCartItemsAsync(); // Refresh the list after deletion
+    }
+
+    private void NavigateToCreatePage()
+    {
+        NavigationManager.NavigateTo("/cartitem/create");
+    }
+}

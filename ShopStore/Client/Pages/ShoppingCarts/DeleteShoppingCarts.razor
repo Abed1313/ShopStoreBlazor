@@ -1,0 +1,47 @@
+﻿@page "/shoppingcarts/delete/{id:int}"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models
+@using ShopStore.Shared.Models.DTO
+@inject ShoppingCartService ShoppingCartService
+@inject NavigationManager NavigationManager
+
+<h3>Delete Shopping Cart</h3>
+
+@if (shoppingCart == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p>Are you sure you want to delete the shopping cart for Customer ID: @shoppingCart.CustomerId?</p>
+    <p><strong>Created Date:</strong> @shoppingCart.CreatedDate.ToShortDateString()</p>
+
+    <button class="btn btn-danger" @onclick="DeleteShoppingCart">Delete</button>
+    <button class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private ShoppingCartDTO shoppingCart; // Change here to use ShoppingCartDTO
+
+    protected override async Task OnInitializedAsync()
+    {
+        shoppingCart = await ShoppingCartService.GetShoppingCartByIdAsync(Id);
+    }
+
+    private async Task DeleteShoppingCart()
+    {
+        var success = await ShoppingCartService.DeleteShoppingCartAsync(Id);
+        if (success)
+        {
+            NavigationManager.NavigateTo("/shoppingcarts"); // Redirect to the shopping carts list after deletion
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/shoppingcarts"); // Navigate back to the shopping carts list
+    }
+}

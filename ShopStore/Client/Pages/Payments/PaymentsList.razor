@@ -1,0 +1,82 @@
+﻿@page "/payments"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models
+@inject PaymentService PaymentService
+@inject NavigationManager NavigationManager
+
+<h3>Payments</h3>
+
+@if (payments == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!payments.Any())
+{
+    <p>No payments found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Payment ID</th>
+                <th>Payment Date</th>
+                <th>Amount</th>
+                <th>Payment Method</th>
+                <th>Order ID</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var payment in payments)
+            {
+                <tr>
+                    <td>@payment.PaymentId</td>
+                    <td>@payment.PaymentDate.ToShortDateString()</td>
+                    <td>@payment.Amount.ToString("C")</td>
+                    <td>@payment.PaymentMethod</td>
+                    <td>@payment.OrderId</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => EditPayment(payment.PaymentId)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => ConfirmDelete(payment.PaymentId)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<button class="btn btn-success" @onclick="CreatePayment">Create New Payment</button>
+
+@code {
+    private List<Payment> payments;
+
+    protected override async Task OnInitializedAsync()
+    {
+        payments = await PaymentService.GetPaymentsAsync();
+    }
+
+    private void EditPayment(int paymentId)
+    {
+        NavigationManager.NavigateTo($"/payments/edit/{paymentId}");
+    }
+
+    private async Task ConfirmDelete(int paymentId)
+    {
+        if (await ShowDeleteConfirmation())
+        {
+            await PaymentService.DeletePaymentAsync(paymentId);
+            payments = await PaymentService.GetPaymentsAsync(); // Refresh the list after deletion
+        }
+    }
+
+    private async Task<bool> ShowDeleteConfirmation()
+    {
+        return await Task.FromResult(true); // Replace this with actual confirmation logic (e.g., a modal dialog)
+    }
+
+    private void CreatePayment()
+    {
+        NavigationManager.NavigateTo("/payments/create");
+    }
+}

@@ -1,0 +1,95 @@
+﻿@page "/customer/edit/{id:int}"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models;
+@using ShopStore.Shared.Models.DTO
+@inject CustomerService CustomerService
+@inject NavigationManager NavigationManager
+
+<h3>Edit Customer</h3>
+
+@if (customerDTO == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="@customerDTO" OnValidSubmit="HandleEdit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            <InputText id="firstName" @bind-Value="customerDTO.FirstName" class="form-control" />
+            <ValidationMessage For="@(() => customerDTO.FirstName)" />
+        </div>
+        <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <InputText id="lastName" @bind-Value="customerDTO.LastName" class="form-control" />
+            <ValidationMessage For="@(() => customerDTO.LastName)" />
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <InputText id="email" @bind-Value="customerDTO.Email" type="email" class="form-control" />
+            <ValidationMessage For="@(() => customerDTO.Email)" />
+        </div>
+        <div class="form-group">
+            <label for="address">Address</label>
+            <InputText id="address" @bind-Value="customerDTO.Address" class="form-control" />
+            <ValidationMessage For="@(() => customerDTO.Address)" />
+        </div>
+        <div class="form-group">
+            <label for="phoneNumber">Phone Number</label>
+            <InputText id="phoneNumber" @bind-Value="customerDTO.PhoneNumber" class="form-control" />
+            <ValidationMessage For="@(() => customerDTO.PhoneNumber)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    private CustomerDTO customerDTO;
+    private int originalId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var customer = await CustomerService.GetCustomerByIdAsync(id);
+        customerDTO = MapToDTO(customer);
+        originalId = id; // Store the original ID for validation
+    }
+
+    private CustomerDTO MapToDTO(Customer customer)
+    {
+        if (customer == null) return null;
+
+        return new CustomerDTO
+            {
+                FirstName = customer.FirstName,
+                LastName = customer.LastName,
+                Email = customer.Email,
+                Address = customer.Address,
+                PhoneNumber = customer.PhoneNumber
+            };
+    }
+
+    private async Task HandleEdit()
+    {
+        if (id != originalId)
+        {
+            // ID has changed, handle as needed
+            Console.WriteLine("ID cannot be changed.");
+            return;
+        }
+
+        await CustomerService.UpdateCustomerAsync(id, customerDTO);
+        NavigationManager.NavigateTo("/customers");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/customers");
+    }
+}
+

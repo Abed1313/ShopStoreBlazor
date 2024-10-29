@@ -1,0 +1,73 @@
+﻿@page "/orders"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models
+@inject OrderService OrderService
+@inject NavigationManager NavigationManager
+
+<h3>Order List</h3>
+
+@if (orders == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer ID</th>
+                <th>Order Date</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in orders)
+            {
+                <tr>
+                    <td>@order.OrderId</td>
+                    <td>@order.CustomerId</td>
+                    <td>@order.OrderDate.ToShortDateString()</td>
+                    <td>@order.TotalAmount.ToString("C")</td>
+                    <td>@order.OrderStatus</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => EditOrder(order.OrderId)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteOrder(order.OrderId)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Button to navigate to the create order page -->
+    <div class="mt-3">
+        <button class="btn btn-success" @onclick="NavigateToCreatePage">Create New Order</button>
+    </div>
+}
+
+@code {
+    private List<Order> orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        orders = await OrderService.GetOrdersAsync();
+    }
+
+    private void EditOrder(int id)
+    {
+        NavigationManager.NavigateTo($"/order/edit/{id}");
+    }
+
+    private async Task DeleteOrder(int id)
+    {
+        await OrderService.DeleteOrderAsync(id);
+        orders = await OrderService.GetOrdersAsync(); // Refresh the order list after deletion
+    }
+
+    private void NavigateToCreatePage()
+    {
+        NavigationManager.NavigateTo("/order/create");
+    }
+}

@@ -1,0 +1,54 @@
+﻿@page "/reviews/create"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models.DTO
+@inject ReviewService ReviewService
+@inject NavigationManager NavigationManager
+
+<h3>Create Review</h3>
+
+<EditForm Model="reviewDTO" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="rating">Rating</label>
+        <InputNumber id="rating" @bind-Value="reviewDTO.Rating" class="form-control" />
+        <ValidationMessage For="@(() => reviewDTO.Rating)" />
+    </div>
+
+    <div class="form-group">
+        <label for="comment">Comment</label>
+        <InputTextArea id="comment" @bind-Value="reviewDTO.Comment" class="form-control" />
+        <ValidationMessage For="@(() => reviewDTO.Comment)" />
+    </div>
+
+    <div class="form-group">
+        <label for="customerId">Customer ID</label>
+        <InputNumber id="customerId" @bind-Value="reviewDTO.CustomerId" class="form-control" />
+        <ValidationMessage For="@(() => reviewDTO.CustomerId)" />
+    </div>
+
+    <div class="form-group">
+        <label for="productId">Product ID</label>
+        <InputNumber id="productId" @bind-Value="reviewDTO.ProductId" class="form-control" />
+        <ValidationMessage For="@(() => reviewDTO.ProductId)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+</EditForm>
+
+@code {
+    private ReviewDTO reviewDTO = new ReviewDTO();
+
+    private async Task HandleValidSubmit()
+    {
+        await ReviewService.CreateReviewAsync(reviewDTO);
+        NavigationManager.NavigateTo("/reviews"); // Navigate to the reviews list after creation
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/reviews");
+    }
+}

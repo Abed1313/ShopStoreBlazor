@@ -1,0 +1,58 @@
+﻿@page "/shoppingcarts/edit/{id:int}"
+@using ShopStore.Shared.Models.DTO
+@using ShopStore.Client.Services
+@inject ShoppingCartService ShoppingCartService
+@inject NavigationManager NavigationManager
+
+<h3>Edit Shopping Cart</h3>
+
+@if (shoppingCartDTO == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm Model="shoppingCartDTO" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="customerId">Customer ID:</label>
+            <InputNumber id="customerId" @bind-Value="shoppingCartDTO.CustomerId" class="form-control" required />
+        </div>
+
+        <div class="form-group">
+            <label for="createdDate">Created Date:</label>
+            <InputDate id="createdDate" @bind-Value="shoppingCartDTO.CreatedDate" class="form-control" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private ShoppingCartDTO shoppingCartDTO;
+
+    protected override async Task OnInitializedAsync()
+    {
+        shoppingCartDTO = await ShoppingCartService.GetShoppingCartByIdAsync(Id);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var success = await ShoppingCartService.UpdateShoppingCartAsync(Id, shoppingCartDTO);
+        if (success)
+        {
+            NavigationManager.NavigateTo("/shoppingcarts"); // Redirect to the shopping carts list after saving
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/shoppingcarts"); // Navigate back to the shopping carts list
+    }
+}

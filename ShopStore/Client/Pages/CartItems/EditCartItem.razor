@@ -1,0 +1,67 @@
+﻿@page "/cartitem/edit/{id:int}"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models.DTO
+@using ShopStore.Shared.Models
+@inject CartItemService CartItemService
+@inject ProductService ProductService
+@inject NavigationManager NavigationManager
+
+<h3>Edit Cart Item</h3>
+
+<EditForm Model="cartItem" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Product:</label>
+        <InputSelect @bind-Value="cartItem.ProductId" class="form-control">
+            <option value="">Select a product</option>
+            @foreach (var product in products)
+            {
+                <option value="@product.ProductId">@product.Name</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="form-group">
+        <label>Quantity:</label>
+        <InputNumber @bind-Value="cartItem.Quantity" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+</EditForm>
+
+@code {
+    [Parameter] public int id { get; set; }
+    private CartItemDTO cartItem = new CartItemDTO();
+    private List<Product> products = new List<Product>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetProductsAsync();
+
+        var existingItem = await CartItemService.GetCartItemByIdAsync(id);
+        if (existingItem != null)
+        {
+            cartItem = new CartItemDTO
+                {
+                    CartItemId = existingItem.CartItemId,
+                    Quantity = existingItem.Quantity,
+                    ShoppingCartId = existingItem.ShoppingCartId,
+                    ProductId = existingItem.ProductId
+                };
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await CartItemService.UpdateCartItemAsync(id, cartItem);
+        NavigationManager.NavigateTo("/cartitems");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/cartitems");
+    }
+}

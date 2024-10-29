@@ -1,0 +1,71 @@
+﻿@page "/orderitem/edit/{id:int}"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models.DTO
+@inject OrderItemService OrderItemService
+@inject NavigationManager NavigationManager
+
+<h3>Edit Order Item</h3>
+
+@if (orderItem != null)
+{
+    <EditForm Model="orderItem" OnValidSubmit="HandleEdit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>Quantity:</label>
+            <InputNumber @bind-Value="orderItem.Quantity" class="form-control" required />
+        </div>
+
+        <div class="form-group">
+            <label>Unit Price:</label>
+            <InputNumber @bind-Value="orderItem.UnitPrice" class="form-control" required />
+        </div>
+
+        <div class="form-group">
+            <label>Order ID:</label>
+            <InputNumber @bind-Value="orderItem.OrderId" class="form-control" required />
+        </div>
+
+        <div class="form-group">
+            <label>Product ID:</label>
+            <InputNumber @bind-Value="orderItem.ProductId" class="form-control" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Order Item</button>
+    </EditForm>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private OrderItemDTO orderItem;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch the existing order item by ID
+        var orderItemEntity = await OrderItemService.GetOrderItemByIdAsync(Id);
+        
+        // Map the OrderItem entity to OrderItemDTO
+        orderItem = new OrderItemDTO
+        {
+            OrderItemId = orderItemEntity.OrderItemId,
+            Quantity = orderItemEntity.Quantity,
+            UnitPrice = orderItemEntity.UnitPrice,
+            OrderId = orderItemEntity.OrderId,
+            ProductId = orderItemEntity.ProductId
+        };
+    }
+
+    private async Task HandleEdit()
+    {
+        // Update the order item using the service
+        await OrderItemService.UpdateOrderItemAsync(Id, orderItem);
+        NavigationManager.NavigateTo("/orderitems"); // Navigate back to the order items list
+    }
+}

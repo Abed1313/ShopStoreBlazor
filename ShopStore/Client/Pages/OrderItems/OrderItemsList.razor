@@ -1,0 +1,78 @@
+﻿@page "/orderitems"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models
+@using Microsoft.AspNetCore.Components
+@inject OrderItemService OrderItemService
+@inject NavigationManager NavigationManager
+
+<h3>Order Items</h3>
+
+@if (orderItems == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (orderItems.Count == 0)
+{
+    <p>No order items found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Order Item ID</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Order ID</th>
+                <th>Product ID</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var orderItem in orderItems)
+            {
+                <tr>
+                    <td>@orderItem.OrderItemId</td>
+                    <td>@orderItem.Quantity</td>
+                    <td>@orderItem.UnitPrice.ToString("C")</td>
+                    <td>@orderItem.OrderId</td>
+                    <td>@orderItem.ProductId</td>
+                    <td>
+                        <button class="btn btn-danger" @onclick="() => DeleteOrderItem(orderItem.OrderItemId)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<button class="btn btn-primary" @onclick="NavigateToCreate">Create New Order Item</button>
+
+@code {
+    private List<OrderItem> orderItems;
+
+    protected override async Task OnInitializedAsync()
+    {
+        orderItems = await OrderItemService.GetOrderItemsAsync();
+    }
+
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo("/orderitem/create"); // Update the route to your create component
+    }
+
+    private async Task DeleteOrderItem(int orderItemId)
+    {
+        var confirmed = await ConfirmDelete();
+        if (confirmed)
+        {
+            await OrderItemService.DeleteOrderItemAsync(orderItemId);
+            orderItems = await OrderItemService.GetOrderItemsAsync(); // Refresh the list
+        }
+    }
+
+    private async Task<bool> ConfirmDelete()
+    {
+        return await Task.FromResult(true); // You can implement a confirmation dialog here
+    }
+}

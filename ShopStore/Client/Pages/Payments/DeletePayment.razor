@@ -1,0 +1,41 @@
+﻿@page "/payments/delete/{paymentId:int}"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models
+@inject PaymentService PaymentService
+@inject NavigationManager NavigationManager
+
+<h3>Delete Payment</h3>
+
+@if (payment == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p>Are you sure you want to delete the payment for <strong>@payment.Amount</strong> on <strong>@payment.PaymentDate.ToShortDateString()</strong>?</p>
+    <button class="btn btn-danger" @onclick="DeletePaymentAsync">Delete</button>
+    <button class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+}
+
+@code {
+    [Parameter]
+    public int paymentId { get; set; }
+
+    private Payment payment;
+
+    protected override async Task OnInitializedAsync()
+    {
+        payment = await PaymentService.GetPaymentByIdAsync(paymentId);
+    }
+
+    private async Task DeletePaymentAsync() // Renamed method to avoid conflict
+    {
+        await PaymentService.DeletePaymentAsync(paymentId);
+        NavigationManager.NavigateTo("/payments");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/payments");
+    }
+}

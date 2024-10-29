@@ -1,0 +1,31 @@
+﻿@page "/customer/{id:int}"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models
+@inject CustomerService CustomerService
+
+@code {
+    [Parameter] public int id { get; set; }
+    private Customer customer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        customer = await CustomerService.GetCustomerByIdAsync(id);
+    }
+}
+
+<h3>Customer Details</h3>
+
+@if (customer == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div>
+        <p><strong>First Name:</strong> @customer.FirstName</p>
+        <p><strong>Last Name:</strong> @customer.LastName</p>
+        <p><strong>Email:</strong> @customer.Email</p>
+        <p><strong>Address:</strong> @customer.Address</p>
+        <p><strong>Phone Number:</strong> @customer.PhoneNumber</p>
+    </div>
+}

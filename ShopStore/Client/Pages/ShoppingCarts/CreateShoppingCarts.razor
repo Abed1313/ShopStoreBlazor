@@ -1,0 +1,43 @@
+﻿@page "/shoppingcarts/create"
+@using ShopStore.Shared.Models.DTO
+@using ShopStore.Client.Services
+@inject ShoppingCartService ShoppingCartService
+@inject NavigationManager NavigationManager
+
+<h3>Create Shopping Cart</h3>
+
+<EditForm Model="shoppingCartDTO" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="customerId">Customer ID:</label>
+        <InputNumber id="customerId" @bind-Value="shoppingCartDTO.CustomerId" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label for="createdDate">Created Date:</label>
+        <InputDate id="createdDate" @bind-Value="shoppingCartDTO.CreatedDate" class="form-control" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Shopping Cart</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+</EditForm>
+
+@code {
+    private ShoppingCartDTO shoppingCartDTO = new ShoppingCartDTO
+    {
+        CreatedDate = DateTime.Now // Default to the current date
+    };
+
+    private async Task HandleValidSubmit()
+    {
+        await ShoppingCartService.CreateShoppingCartAsync(shoppingCartDTO);
+        NavigationManager.NavigateTo("/shoppingcarts"); // Redirect to the shopping carts list after creation
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/shoppingcarts"); // Navigate back to the shopping carts list
+    }
+}

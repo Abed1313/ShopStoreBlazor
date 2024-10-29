@@ -1,0 +1,84 @@
+﻿@page "/shoppingcarts"
+@using ShopStore.Shared.Models
+@using ShopStore.Client.Services
+@inject ShoppingCartService ShoppingCartService
+@inject NavigationManager NavigationManager
+
+<h3>Shopping Carts</h3>
+
+<button class="btn btn-success mb-3" @onclick="NavigateToCreate">Add New Shopping Cart</button>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else if (shoppingCarts == null || shoppingCarts.Count == 0)
+{
+    <p>No shopping carts available.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Cart ID</th>
+                <th>Created Date</th>
+                <th>Customer ID</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cart in shoppingCarts)
+            {
+                <tr>
+                    <td>@cart.ShoppingCartId</td>
+                    <td>@cart.CreatedDate.ToString("g")</td>
+                    <td>@cart.CustomerId</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => EditShoppingCart(cart.ShoppingCartId)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteShoppingCart(cart.ShoppingCartId)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<ShoppingCart> shoppingCarts;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        shoppingCarts = await ShoppingCartService.GetShoppingCartsAsync();
+        isLoading = false;
+    }
+
+    private void EditShoppingCart(int id)
+    {
+        NavigationManager.NavigateTo($"/shoppingcarts/edit/{id}");
+    }
+
+    private async Task DeleteShoppingCart(int id)
+    {
+        if (await ShoppingCartService.DeleteShoppingCartAsync(id))
+        {
+            shoppingCarts = await ShoppingCartService.GetShoppingCartsAsync(); // Refresh the list after deletion
+        }
+        else
+        {
+            // Handle deletion error (optional)
+            // You might want to show a message to the user
+        }
+    }
+
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo("/shoppingcarts/create");
+    }
+
+    public void Dispose()
+    {
+        // Cleanup resources if needed
+    }
+}

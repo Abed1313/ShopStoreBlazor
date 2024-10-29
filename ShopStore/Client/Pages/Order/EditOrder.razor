@@ -1,0 +1,59 @@
+﻿@page "/edit-order/{id:int}"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models.DTO
+@inject OrderService OrderService
+@code {
+    [Parameter] public int Id { get; set; }
+    private OrderDTO orderDto = new OrderDTO();
+    private bool isSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var order = await OrderService.GetOrderByIdAsync(Id);
+        if (order != null)
+        {
+            orderDto.OrderDate = order.OrderDate;
+            orderDto.TotalAmount = order.TotalAmount;
+            orderDto.CustomerId = order.CustomerId;
+            orderDto.OrderStatus = order.OrderStatus;
+            orderDto.OrderItemIds = order.OrderItems.Select(oi => oi.OrderItemId).ToList();
+        }
+    }
+
+    private async Task UpdateOrder()
+    {
+        await OrderService.UpdateOrderAsync(Id, orderDto);
+        isSuccess = true; // Indicate success (e.g., show a message)
+    }
+}
+
+<h3>Edit Order</h3>
+
+@if (isSuccess)
+{
+    <p>Order updated successfully!</p>
+}
+
+<EditForm Model="@orderDto" OnValidSubmit="@UpdateOrder">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Order Date</label>
+        <InputDate class="form-control" @bind-Value="orderDto.OrderDate" />
+    </div>
+    <div class="form-group">
+        <label>Total Amount</label>
+        <InputNumber class="form-control" @bind-Value="orderDto.TotalAmount" />
+    </div>
+    <div class="form-group">
+        <label>Status</label>
+        <InputSelect class="form-control" @bind-Value="orderDto.OrderStatus">
+            <option value="Order.OrderStatusEnum.Pending">Pending</option>
+            <option value="Order.OrderStatusEnum.Shipped">Shipped</option>
+            <option value="Order.OrderStatusEnum.Delivered">Delivered</option>
+            <option value="Order.OrderStatusEnum.Canceled">Canceled</option>
+        </InputSelect>
+    </div>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+</EditForm>

@@ -1,0 +1,80 @@
+﻿@page "/product/edit/{id:int}"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models
+@using ShopStore.Shared.Models.DTO
+@inject ProductService ProductService
+@inject CategoryService CategoryService
+@inject NavigationManager NavigationManager
+
+<h3>Edit Product</h3>
+
+<EditForm Model="existingProductDTO" OnValidSubmit="HandleUpdate">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Name:</label>
+        <InputText @bind-Value="existingProductDTO.Name" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Description:</label>
+        <InputTextArea @bind-Value="existingProductDTO.Description" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Price:</label>
+        <InputNumber @bind-Value="existingProductDTO.Price" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Stock Quantity:</label>
+        <InputNumber @bind-Value="existingProductDTO.StockQuantity" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Image URL:</label>
+        <InputText @bind-Value="existingProductDTO.ImageUrl" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Category:</label>
+        <InputSelect @bind-Value="existingProductDTO.CategoryId" class="form-control">
+            <option value="">Select a category</option>
+            @foreach (var category in categories)
+            {
+                <option value="@category.CategoryId">@category.Name</option>
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+    private ProductDTO existingProductDTO = new ProductDTO();
+    private List<Category> categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch the existing product data using ProductService
+        var product = await ProductService.GetProductByIdAsync(id);
+
+        // Map product to ProductDTO
+        existingProductDTO = new ProductDTO
+            {
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                StockQuantity = product.StockQuantity,
+                ImageUrl = product.ImageUrl,
+                CategoryId = product.CategoryId
+            };
+
+        // Fetch categories for dropdown
+        categories = await CategoryService.GetCategoriesAsync();
+    }
+
+    private async Task HandleUpdate()
+    {
+        await ProductService.UpdateProductAsync(id, existingProductDTO);
+        NavigationManager.NavigateTo("/products");
+    }
+}

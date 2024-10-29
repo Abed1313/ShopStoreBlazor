@@ -1,0 +1,66 @@
+﻿@page "/order/create"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models
+@using ShopStore.Shared.Models.DTO
+@inject OrderService OrderService
+@inject CustomerService CustomerService 
+@inject NavigationManager NavigationManager
+
+<h3>Create Order</h3>
+
+<EditForm Model="newOrder" OnValidSubmit="HandleCreate">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Customer:</label>
+        <InputSelect @bind-Value="newOrder.CustomerId" class="form-control">
+            <option value="">Select a customer</option>
+            @foreach (var customer in customers)
+            {
+                <option value="@customer.CustomerId">@customer.FirstName</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="form-group">
+        <label>Order Date:</label>
+        <InputDate @bind-Value="newOrder.OrderDate" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Total Amount:</label>
+        <InputNumber @bind-Value="newOrder.TotalAmount" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Status:</label>
+        <InputSelect @bind-Value="newOrder.OrderStatus" class="form-control">
+            <option value="">Select status</option>
+            @foreach (var status in Enum.GetValues(typeof(Order.OrderStatusEnum)).Cast<Order.OrderStatusEnum>())
+            {
+                <option value="@status">@status.ToString()</option>
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+</EditForm>
+
+@code {
+    private OrderDTO newOrder = new OrderDTO();
+    private List<Customer> customers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch customers for dropdown
+        customers = await CustomerService.GetCustomersAsync();
+    }
+
+    private async Task HandleCreate()
+    {
+        // Create the order using the OrderService
+        await OrderService.CreateOrderAsync(newOrder);
+        NavigationManager.NavigateTo("/orders");
+    }
+}

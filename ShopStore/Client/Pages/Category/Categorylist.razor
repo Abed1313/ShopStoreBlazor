@@ -1,0 +1,147 @@
+﻿@page "/category"
+@using ShopStore.Client.Services
+@using ShopStore.Shared.Models.DTO
+@using ShopStore.Shared.Models
+@inject NavigationManager NavigationManager
+@inject CategoryService CategoryService
+
+<h3>Category Management</h3>
+
+<button @onclick="ToggleCreateCategory">Add New Category</button>
+
+@if (category == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cat in category)
+            {
+                <tr>
+                    <td>@cat.Name</td>
+                    <td>@cat.Description</td>
+                    <td>
+                        <button @onclick="() => EditCategory(cat.CategoryId, cat)">Edit</button>
+                        <button @onclick="() => DeleteCategoryAsync(cat.CategoryId)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (isEditMode)
+{
+    <h3>Edit Category</h3>
+    <EditForm Model="selectedCategory" OnValidSubmit="UpdateCategoryAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>Name:</label>
+            <InputText @bind-Value="selectedCategory.Name" class="form-control" />
+        </div>
+        
+        <div class="form-group">
+            <label>Description:</label>
+            <InputTextArea @bind-Value="selectedCategory.Description" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+    </EditForm>
+}
+
+@if (isCreateMode)
+{
+    <h3>Create New Category</h3>
+    <EditForm Model="newCategory" OnValidSubmit="CreateCategoryAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>Name:</label>
+            <InputText @bind-Value="newCategory.Name" class="form-control" />
+        </div>
+        
+        <div class="form-group">
+            <label>Description:</label>
+            <InputTextArea @bind-Value="newCategory.Description" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create</button>
+        <button type="button" class="btn btn-secondary" @onclick="CancelCreate">Cancel</button>
+    </EditForm>
+}
+
+@code {
+    private List<Category> category;
+    private CategoryDTO selectedCategory = new CategoryDTO();
+    private CategoryDTO newCategory = new CategoryDTO();
+    private bool isEditMode = false;
+    private bool isCreateMode = false;
+    private int id = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        category = await CategoryService.GetCategoriesAsync();
+    }
+
+    private void ToggleCreateCategory()
+    {
+        isCreateMode = true;
+    }
+
+    private async Task CreateCategoryAsync()
+    {
+        await CategoryService.CreateCategoryAsync(newCategory);
+        category = await CategoryService.GetCategoriesAsync(); // Refresh the list
+        isCreateMode = false;
+        newCategory = new CategoryDTO(); // Reset the form
+    }
+
+    private void EditCategory(int Id, Category cat)
+    {
+        selectedCategory = new CategoryDTO
+        {
+            CategoryId = cat.CategoryId,
+            Name = cat.Name,
+            Description = cat.Description
+        };
+        id = Id;
+        isEditMode = true;
+    }
+
+    private async Task UpdateCategoryAsync()
+    {
+        await CategoryService.UpdateCategoryAsync(id, selectedCategory);
+        category = await CategoryService.GetCategoriesAsync(); // Refresh the list
+        isEditMode = false;
+    }
+
+    private void CancelEdit()
+    {
+        isEditMode = false;
+    }
+
+    private void CancelCreate()
+    {
+        isCreateMode = false;
+        newCategory = new CategoryDTO(); // Clear the form
+    }
+
+    private async Task DeleteCategoryAsync(int id)
+    {
+        await CategoryService.DeleteCategoryAsync(id);
+        category = await CategoryService.GetCategoriesAsync(); // Refresh the list
+    }
+}
